@@ -1,91 +1,133 @@
-import React, { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { HeroRebuildInput } from './components/HeroRebuildInput';
-import { InteractivePlayground } from './components/InteractivePlayground';
-import { RebuildShowcaseGrid } from './components/RebuildShowcaseGrid';
-import { RevivalVaultSection } from './components/RevivalVaultSection';
-import { LabMetricsBanner } from './components/LabMetricsBanner';
-import { Footer } from './components/Footer';
-import { LaunchModal } from './components/LaunchModal';
-import { MOCK_REBUILDS, INITIAL_ENGINE_STATS } from './data/mockRebuilds';
-import { RebuiltApp, EngineStats } from './types/rebuilab';
+import React, { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 
 export const App: React.FC = () => {
-  const [apps, setApps] = useState<RebuiltApp[]>(MOCK_REBUILDS);
-  const [stats, setStats] = useState<EngineStats>(INITIAL_ENGINE_STATS);
-  const [launchModalOpen, setLaunchModalOpen] = useState(false);
-  const [launchInitialTarget, setLaunchInitialTarget] = useState('');
+  const [pupilOffset, setPupilOffset] = useState({ x: 4, y: 2 });
+  const [isBlinking, setIsBlinking] = useState(false);
+  const mascotRef = useRef<HTMLDivElement>(null);
 
-  const handleOpenLaunch = (target?: string) => {
-    setLaunchInitialTarget(target || '');
-    setLaunchModalOpen(true);
-  };
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!mascotRef.current) return;
+      const rect = mascotRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-  const handleOpenRevival = () => {
-    const el = document.getElementById('revival');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+      const maxDistance = 6;
+      setPupilOffset({
+        x: Math.cos(angle) * maxDistance,
+        y: Math.sin(angle) * maxDistance,
+      });
+    };
 
-  const handleSelectPlayApp = (_app: RebuiltApp) => {
-    const el = document.getElementById('playground');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
-  const handleAppCreated = (newApp: RebuiltApp) => {
-    setApps((prev) => [newApp, ...prev]);
-    setStats((prev) => ({
-      ...prev,
-      totalRebuilds: prev.totalRebuilds + 1,
-      totalSolDeployed: Number((prev.totalSolDeployed + 0.05).toFixed(2)),
-    }));
+  // Blinking animation every 4 seconds
+  useEffect(() => {
+    const blinkInterval = setInterval(() => {
+      setIsBlinking(true);
+      setTimeout(() => setIsBlinking(false), 180);
+    }, 4200);
+    return () => clearInterval(blinkInterval);
+  }, []);
+
+  const handleClickMascot = () => {
+    confetti({
+      particleCount: 40,
+      spread: 60,
+      origin: { y: 0.5 },
+      colors: ['#ffd23f', '#ffffff', '#111111'],
+    });
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#f3f3f1] selection:bg-[#00f2fe]/20 selection:text-[#00f2fe] flex flex-col font-sans">
-      {/* Top Navbar */}
-      <Navbar
-        onOpenLaunch={handleOpenLaunch}
-        onOpenRevival={handleOpenRevival}
-        rlabPrice={0.0614}
-        burnedCount={stats.rlabBurned}
-      />
+    <div style={{ textAlign: 'center' }}>
+      {/* 4-block yellow mascot with interactive eye tracking */}
+      <div
+        ref={mascotRef}
+        onClick={handleClickMascot}
+        style={{
+          display: 'inline-block',
+          cursor: 'pointer',
+          transition: 'transform 0.15s ease',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 216 216"
+          width="88"
+          height="88"
+          style={{ display: 'block', margin: '0 auto' }}
+        >
+          {/* 4 Yellow Squares */}
+          <rect width="100" height="100" rx="24" fill="#ffd23f" />
+          <rect x="108" width="100" height="100" rx="24" fill="#ffd23f" />
+          <rect y="108" width="100" height="100" rx="24" fill="#ffd23f" />
+          <rect x="108" y="108" width="100" height="100" rx="24" fill="#ffd23f" />
 
-      <main className="flex-1">
-        {/* Hero Section with Quick Rebuild Input */}
-        <HeroRebuildInput
-          onRebuildTarget={handleOpenLaunch}
-          stats={stats}
-        />
+          {/* Eyes Group with Blink */}
+          <g
+            style={{
+              transformOrigin: '108px 58px',
+              transform: isBlinking ? 'scaleY(0.1)' : 'scaleY(1)',
+              transition: 'transform 0.1s ease',
+            }}
+          >
+            {/* White Sclera */}
+            <circle cx="62" cy="58" r="20" fill="#fff" />
+            <circle cx="154" cy="58" r="20" fill="#fff" />
 
-        {/* Interactive In-Browser Sandbox Playground */}
-        <InteractivePlayground />
+            {/* Black Pupils tracking mouse */}
+            <circle
+              cx={62 + pupilOffset.x}
+              cy={58 + pupilOffset.y}
+              r="10"
+              fill="#111"
+            />
+            <circle
+              cx={154 + pupilOffset.x}
+              cy={58 + pupilOffset.y}
+              r="10"
+              fill="#111"
+            />
+          </g>
+        </svg>
+      </div>
 
-        {/* Live Rebuilds Showcase Grid */}
-        <RebuildShowcaseGrid
-          apps={apps}
-          onSelectPlayApp={handleSelectPlayApp}
-          onLaunchNew={() => handleOpenLaunch()}
-        />
+      {/* Exact Brand Title */}
+      <div
+        style={{
+          fontSize: '52px',
+          letterSpacing: '-.04em',
+          marginTop: '14px',
+          fontWeight: 800,
+          color: '#f3f3f1',
+          fontFamily: 'Geist, system-ui, sans-serif',
+          userSelect: 'none',
+        }}
+      >
+        REBUILAB
+      </div>
 
-        {/* Dead Token / CTO Revival Vault */}
-        <RevivalVaultSection
-          onReviveSuccess={(token) => handleOpenLaunch(token.tokenName)}
-        />
-
-        {/* 3-Step Mechanics Banner */}
-        <LabMetricsBanner />
-      </main>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* 0.05 SOL Launch Modal */}
-      <LaunchModal
-        isOpen={launchModalOpen}
-        onClose={() => setLaunchModalOpen(false)}
-        initialTarget={launchInitialTarget}
-        onAppCreated={handleAppCreated}
-      />
+      {/* Exact Subtitle */}
+      <div
+        style={{
+          opacity: 0.6,
+          fontWeight: 500,
+          fontSize: '16px',
+          marginTop: '6px',
+          color: '#f3f3f1',
+          fontFamily: 'Geist, system-ui, sans-serif',
+          userSelect: 'none',
+        }}
+      >
+        Launch a coin. Rebuild anything. Soon.
+      </div>
     </div>
   );
 };
