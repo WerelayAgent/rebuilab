@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    background-color: #080808;
+    color: #f3f3f1;
+    overflow-x: hidden;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Geist', 'Space Grotesk', sans-serif;
+    letter-spacing: -0.04em;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+::-webkit-scrollbar-thumb {
+  background: #1c1d24;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2c38;
+}
+
+/* Laboratory Accents */
+.glow-lab {
+  box-shadow: 0 0 25px -4px rgba(34, 197, 94, 0.25);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -4px rgba(0, 242, 254, 0.25);
+}
+
+.bg-radial-lab {
+  background: radial-gradient(ellipse 70% 50% at 50% -15%, rgba(0, 242, 254, 0.08), rgba(34, 197, 94, 0.04) 40%, transparent 80%);
+}
+
+.bg-grid-lab {
+  background-size: 24px 24px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Oscilloscope Scanning line */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.animate-scanline {
+  animation: scanline 8s linear infinite;
+}
